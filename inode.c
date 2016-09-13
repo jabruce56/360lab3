@@ -34,7 +34,7 @@ inode()
   // read GD
   get_block(fd, 2, buf);
   gp = (GD *)buf;
-  /************ print these to see what they are  ****
+  /************ print these to see what they are  ****/
   printf("%8d %8d %8d %8d %8d %8d\n",
 	 gp->bg_block_bitmap,
 	 gp->bg_inode_bitmap,
@@ -42,7 +42,7 @@ inode()
 	 gp->bg_free_blocks_count,
 	 gp->bg_free_inodes_count,
 	 gp->bg_used_dirs_count);
-  ***************************************************/
+  /***************************************************/
   iblock = gp->bg_inode_table;   // get inode start block#
   printf("inode_block=%d\n", iblock);
 
@@ -98,4 +98,4 @@ size=1024
 time=Mon Feb  9 07:32:16 2014
 link=3
 i_block[0]=33
-******************************
+******************************/

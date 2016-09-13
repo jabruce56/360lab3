@@ -1,4 +1,3 @@
-/**************** imap.c file *************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -17,6 +16,7 @@ INODE *ip;
 DIR   *dp;
 
 #define BLKSIZE 1024
+
 char buf[BLKSIZE];
 int fd;
 
@@ -33,35 +33,21 @@ int tst_bit(char *buf, int bit)
   return (buf[i] & (1 << j));
 }
 
-imap()
+bmap()
 {
-  char buf[BLKSIZE];
-  int  imap, ninodes;
-  int  i;
-
-  // read SUPER block
+  int i;
   get_block(fd, 1, buf);
   sp = (SUPER *)buf;
-
-  ninodes = sp->s_inodes_count;
-  printf("ninodes = %d\n", ninodes);
-
-  // read Group Descriptor 0
-  get_block(fd, 2, buf);
+  get_block(fd, sp->s_first_data_block, buf);
   gp = (GD *)buf;
 
-  imap = gp->bg_inode_bitmap;
-  printf("imap = %d\n", imap);
-
-  // read inode_bitmap block
-  get_block(fd, imap, buf);
-
-  for (i=0; i < ninodes; i++){
-    (tst_bit(buf, i)) ?	putchar('1') : putchar('0');
-    if (i && (i % 8)==0)
-       printf(" ");
+  for(i = 0; i < 8; i++)
+  {
+    if(tst_bit(gp->bg_block_bitmap, i))
+      printf("block %d IN_USE", i);
+    else
+      printf("block %d FREE", i);
   }
-  printf("\n");
 }
 
 char *disk = "mydisk";
@@ -77,10 +63,5 @@ main(int argc, char *argv[ ])
     exit(1);
   }
 
-  imap();
+  bmap();
 }
-/*********************** SAMPLE Imap ***********************************
-11111111 11000000 00000000 00000000 00000000 00000000 00000000 00000000
-00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-00000000 00000000 00000000 00000000 00000000 00000000 00000000 11111111
-***********************************************************************/

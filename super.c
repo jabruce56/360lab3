@@ -89,9 +89,7 @@ super()
 
 char *disk = "mydisk";
 
-main(int argc, char *argv[ ])
-
-{
+main(int argc, char *argv[ ]){
   if (argc > 1)
     disk = argv[1];
   fd = open(disk, O_RDONLY);
@@ -99,7 +97,6 @@ main(int argc, char *argv[ ])
     printf("open failed\n");
     exit(1);
   }
-
   super();
 }
 /*

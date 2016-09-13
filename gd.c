@@ -41,7 +41,7 @@ gd()
 {
   get_block(fd, 1, buf);
   sp = (SUPER *)buf;
-  get_block(fd, sp->s_first_data_block+1, buf);
+  get_block(fd, sp->s_first_data_block, buf);
   gp=(GD *)buf;
 
   printf("bg_block_bitmap = %d\n", gp->bg_block_bitmap);
