@@ -35,19 +35,23 @@ int tst_bit(char *buf, int bit)
 
 bmap()
 {
-  int i;
+  int i = 0, fr = 0, inuse = 0, nblk = 0;
   get_block(fd, 1, buf);
   sp = (SUPER *)buf;
+  nblk =sp->s_blocks_count;
   get_block(fd, sp->s_first_data_block, buf);
   gp = (GD *)buf;
 
-  for(i = 0; i < 8; i++)
+  for(i = 1; i < nblk; i++)
   {
-    if(tst_bit(gp->bg_block_bitmap, i))
-      printf("block %d IN_USE", i);
+    if(tst_bit(buf, gp->bg_block_bitmap+i))
+      inuse++;
     else
-      printf("block %d FREE", i);
+      fr++;
   }
+  printf("bmap bitmap\n");
+  printf("%d blocks in use\n", inuse);
+  printf("%d blocks free\n", fr);
 }
 
 char *disk = "mydisk";

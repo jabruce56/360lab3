@@ -28,6 +28,7 @@ Write C programs to display the specified information on the virtual disk:
 6. WRITE YOUR dir.c to print ALL names under / directory
 -------------------------------------------------------------------------
 /********* super.c code ***************/
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -117,10 +118,8 @@ super()
 }
 gd()
 {
-  get_block(fd, 1, buf);
-  sp = (SUPER *)buf;
-  get_block(fd, sp->s_first_data_block, buf);
-  gp = (GD *)buf;
+  get_block(fd, 2, buf);//go to block 2, group descriptor block
+  gp=(GD *)buf;
 
   printf("bg_block_bitmap = %d\n", gp->bg_block_bitmap);
   printf("bg_inode_bitmap = %d\n", gp->bg_inode_bitmap);
@@ -155,9 +154,11 @@ bmap()
   printf("%d blocks in use\n", inuse);
   printf("%d blocks free\n", fr);
 }
-dir()
-{
-
+dir(){
+  int nblk;
+  get_block(fd, 2, buf);
+  gp = (GD *)buf;
+  printf("%s", gp->
 }
 
 char *disk = "mydisk";
@@ -170,10 +171,10 @@ main(int argc, char *argv[ ]){
     printf("open failed\n");
     exit(1);
   }
-
-  super();
-  gd();
-  bmap();
+  //super();
+  //gd();
+  //bmap();
+  dir();
 }
 /*
 ***** SAMPLE OUTPUTs of super.c ****************
@@ -201,9 +202,7 @@ s_mtime = Mon Feb  9 07:08:22 2004
 
 5.
 */
-dir(){
 
-}
 /*6. WRITE YOUR dir.c to print ALL files under the / directory:
 
               HOW TO STEP THROUGH dir_entries:

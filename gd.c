@@ -39,9 +39,7 @@ int get_block(int fd, int blk, char buf[ ])
 
 gd()
 {
-  get_block(fd, 1, buf);
-  sp = (SUPER *)buf;
-  get_block(fd, sp->s_first_data_block, buf);
+  get_block(fd, 2, buf);//go to block 2, group descriptor block
   gp=(GD *)buf;
 
   printf("bg_block_bitmap = %d\n", gp->bg_block_bitmap);
