@@ -1,6 +1,5 @@
-
-
-/*360 LAB #3 Pre-Work
+/*Jesse Bruce
+360 LAB #3 Pre-Work
 
                    CS 360 LAB #3 Pre-work
 
@@ -26,8 +25,7 @@ Write C programs to display the specified information on the virtual disk:
 
 5. inode.c  : root inode information
 6. WRITE YOUR dir.c to print ALL names under / directory
--------------------------------------------------------------------------
-/********* super.c code ***************/
+-------------------------------------------------------------------------*/
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,7 +33,6 @@ Write C programs to display the specified information on the virtual disk:
 #include <ext2fs/ext2_fs.h>
 
 typedef unsigned int   u32;
-
 // define shorter TYPES, save typing efforts
 typedef struct ext2_group_desc  GD;
 typedef struct ext2_super_block SUPER;
@@ -46,29 +43,6 @@ GD    *gp;
 SUPER *sp;
 INODE *ip;
 DIR   *dp;
-
-/******************* in <ext2fs/ext2_fs.h>*******************************
-struct ext2_super_block {
-  u32  s_inodes_count;       // total number of inodes
-  u32  s_blocks_count;       // total number of blocks
-  u32  s_r_blocks_count;
-  u32  s_free_blocks_count;  // current number of free blocks
-  u32  s_free_inodes_count;  // current number of free inodes
-  u32  s_first_data_block;   // first data block in this group
-  u32  s_log_block_size;     // 0 for 1KB block size
-  u32  s_log_frag_size;
-  u32  s_blocks_per_group;   // 8192 blocks per group
-  u32  s_frags_per_group;
-  u32  s_inodes_per_group;
-  u32  s_mtime;
-  u32  s_wtime;
-  u16  s_mnt_count;          // number of times mounted
-  u16  s_max_mnt_count;      // mount limit
-  u16  s_magic;              // 0xEF53
-  // MANY MORE non-essential fields
-};
-**********************************************************************/
-
 #define BLKSIZE 1024
 char buf[BLKSIZE];
 int fd;
@@ -77,44 +51,6 @@ int get_block(int fd, int blk, char buf[ ])
 {
   lseek(fd, (long)blk*BLKSIZE, 0);
   read(fd, buf, BLKSIZE);
-}
-
-super()
-{
-  // read SUPER block
-  get_block(fd, 1, buf);
-  sp = (SUPER *)buf;
-
-  // check for EXT2 magic number:
-
-  printf("s_magic = %x\n", sp->s_magic);
-  if (sp->s_magic != 0xEF53){
-    printf("NOT an EXT2 FS\n");
-    exit(1);
-  }
-
-  printf("EXT2 FS OK\n");
-
-  printf("s_inodes_count = %d\n", sp->s_inodes_count);
-  printf("s_blocks_count = %d\n", sp->s_blocks_count);
-  printf("s_free_inodes_count = %d\n", sp->s_free_inodes_count);
-  printf("s_free_blocks_count = %d\n", sp->s_free_blocks_count);
-
-  printf("s_first_data_block = %d\n", sp->s_first_data_block);
-
-  printf("s_log_block_size = %d\n", sp->s_log_block_size);
-
-  printf("s_blocks_per_group = %d\n", sp->s_blocks_per_group);
-  printf("s_inodes_per_group = %d\n", sp->s_inodes_per_group);
-
-
-  printf("s_mnt_count = %d\n", sp->s_mnt_count);
-  printf("s_max_mnt_count = %d\n", sp->s_max_mnt_count);
-
-  printf("s_magic = %x\n", sp->s_magic);
-
-  printf("s_mtime = %s", ctime(&sp->s_mtime));
-  printf("s_wtime = %s", ctime(&sp->s_wtime));
 }
 gd()
 {
@@ -150,17 +86,44 @@ bmap()
     else
       fr++;
   }
-  printf("bmap bitmap\n");
+  printf("bmap\n");
   printf("%d blocks in use\n", inuse);
   printf("%d blocks free\n", fr);
 }
+printdir(DIR * dp, char *cp)
+{
+  int i =0;
+  printf("%d ", dp->inode);
+  for (i=0; i < dp->name_len;i++){
+    printf("%c", dp->name[0]);
+  }
+  putchar('\n');
+
+}
 dir(){
-  int nblk;
+  char *cp;
+  int ninodes = 0, i = 0, j = 0, n = 0;
+  get_block(fd, 1, buf);
+  sp = (SUPER *)buf;
+  ninodes = sp->s_inodes_count;
   get_block(fd, 2, buf);
   gp = (GD *)buf;
-  printf("%s", gp->
-}
 
+  printf("#inodes %d\n", ninodes);
+  get_block(fd, gp->bg_inode_table, buf);
+
+  ip = (INODE *)buf+1;//inode 2
+
+  get_block(fd, ip->i_block[i], buf);
+  dp = (DIR *)buf;
+  cp = buf;
+  while(dp->inode)
+  {
+    printdir(dp, cp);
+    cp += dp->rec_len;
+    dp = (DIR *)cp;
+  }
+}
 char *disk = "mydisk";
 
 main(int argc, char *argv[ ]){
@@ -171,37 +134,10 @@ main(int argc, char *argv[ ]){
     printf("open failed\n");
     exit(1);
   }
-  //super();
-  //gd();
-  //bmap();
+  gd();
+  bmap();
   dir();
 }
-/*
-***** SAMPLE OUTPUTs of super.c ****************
-s_inodes_count                 =      184
-s_blocks_count                 =     1440
-s_free_inodes_count            =      174
-s_free_blocks_count            =     1411
-s_log_block_size               =        0
-s_blocks_per_group             =     8192
-s_inodes_per_group             =      184
-s_mnt_count                    =        1
-s_max_mnt_count                =       34
-s_magic                        =     ef53
-s_mtime = Mon Feb  9 07:08:22 2004
-************************************************/
-
-
-
-
-
-/*
-
-4. WRITE YOUR OWN bmap.c to print the blocks bitmap
-
-
-5.
-*/
 
 /*6. WRITE YOUR dir.c to print ALL files under the / directory:
 
