@@ -1,4 +1,5 @@
 /*Jesse Bruce
+
 360 LAB #3 Pre-Work
 
                    CS 360 LAB #3 Pre-work
@@ -102,23 +103,20 @@ printdir(DIR * dp, char *cp)
 }
 dir(){
   char *cp;
-  int ninodes = 0, i = 0, j = 0, n = 0;
+  int i = 0, n = 0;
   get_block(fd, 1, buf);
   sp = (SUPER *)buf;
-  ninodes = sp->s_inodes_count;
   get_block(fd, 2, buf);
   gp = (GD *)buf;
-
-  printf("#inodes %d\n", ninodes);
+  n=gp->bg_used_dirs_count;
   get_block(fd, gp->bg_inode_table, buf);
 
   ip = (INODE *)buf+1;//inode 2
-
+  printf("%d\n", n);
   get_block(fd, ip->i_block[i], buf);
   dp = (DIR *)buf;
   cp = buf;
-  while(dp->inode)
-  {
+  for(i=0;i<=n;i++){
     printdir(dp, cp);
     cp += dp->rec_len;
     dp = (DIR *)cp;
