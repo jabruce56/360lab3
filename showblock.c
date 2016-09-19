@@ -4,14 +4,11 @@
 #include <fcntl.h>
 #include <string.h>
 #include <ext2fs/ext2_fs.h>
-
 typedef unsigned int   u32;
-
-// define shorter TYPES, save typing efforts
 typedef struct ext2_group_desc  GD;
 typedef struct ext2_super_block SUPER;
 typedef struct ext2_inode       INODE;
-typedef struct ext2_dir_entry_2 DIR;    // need this for new version of e2fs
+typedef struct ext2_dir_entry_2 DIR;
 
 GD    *gp;
 SUPER *sp;
@@ -19,39 +16,13 @@ INODE *ip;
 DIR   *dp;
 #define BLKSIZE 1024
 char buf[BLKSIZE];
+char *name[50];
 int fd;
-
 int get_block(int fd, int blk, char buf[ ])
 {
   lseek(fd, (long)blk*BLKSIZE, 0);
   read(fd, buf, BLKSIZE);
 }
-int tst_bit(char *buf, int bit)
-{
-  int i=0, j=0;
-  i = bit / 8;  j = bit % 8;
-  return (buf[i] & (1 << j));
-}
-/****
-struct ext2_dir_entry_2 {
-u32 inode; // inode number; count from 1, NOT 0
-u16 rec_len; // this entry's length in bytes
-u8 name_len; // name length in bytes
-u8 file_type; // not used
-char name[EXT2_NAME_LEN]; // name: 1 -255 chars, no NULL byte
-};****/
-u32 search(INODE *inodePtr, char *name)
-{
-
-}
-// char *getdir(DIR *dp)
-// {
-//   size_t size=0;
-//   char **s = malloc(1*sizeof(dp->name));
-//   strcat(s, dp->name);
-//   //printf("%s\n", s);
-//   //return s;
-// }
 printdir(DIR * dp, char *cp)
 {
   int i =0;
@@ -67,7 +38,7 @@ dir(){
   get_block(fd, 2, buf);
   gp = (GD *)buf;
   used_dirs=gp->bg_used_dirs_count;
-  char *name[used_dirs];
+  char *dirs[used_dirs];
   get_block(fd, gp->bg_inode_table, buf);
   ip = (INODE *)buf+1;//inode 2
   get_block(fd, ip->i_block[i], buf);
@@ -76,15 +47,43 @@ dir(){
   for(i=0;i<=used_dirs;i++)
   {
     if (i!=2){
-      printdir(dp, cp);
-      //name[i]=getdir(dp);
+
+      //printdir(dp, cp);
+      dirs[i]=dp->name;
     }
     cp += dp->rec_len;
     dp = (DIR *)cp;
   }
+  return 0;
+}
+
+u32 search(INODE *inodePtr, char *name)
+{
+  int n = 0, i = 0, t = 0, used_dirs = 0, j = 0;
+  char *str, *token, *cp;
+  get_block(fd, inodePtr->i_block[i], buf);
+  dp = (DIR *)buf;
+  cp = buf;
+
+  for(i=0;i<=used_dirs;i++)
+  {
+    if (i!=2){
+      if(&dp->name[0]==name[i])
+          return 1;
+      // printdir(dp, cp);
+      //name[i]=dp->name;
+    }
+    cp += dp->rec_len;
+    dp = (DIR *)cp;
+  }
+  return 0;
 }
 char *disk = "mydisk";
-main(int argc, char *argv[ ]){
+
+main(int argc, char *argv[]){
+  int n = 0, i = 0, t = 0, used_dirs = 0, j = 0;
+  char *str, *token, *cp;
+  char **dirname;
   if (argc > 1)
     disk = argv[1];
   fd = open(disk, O_RDONLY);
@@ -92,8 +91,20 @@ main(int argc, char *argv[ ]){
     printf("open failed\n");
     exit(1);
   }
-  //super();
-  //gd();
-  //bmap();
-  dir();
+  get_block(fd, 2, buf);
+  gp = (GD *)buf;
+  used_dirs=gp->bg_used_dirs_count;
+  get_block(fd, gp->bg_inode_table, buf);
+  ip = (INODE *)buf+1;
+  str = argv[2];
+  token = strtok(str, "/");
+  while (token != NULL){
+    name[n]=token;
+    n++;
+    token = strtok(NULL, str);
+  }
+  for(i=0;i<n;i++)
+    printf("%s\n%d\n", name[i], n);
+  t = dir(name, n);
+  //printf("%s\n", dirname[4]);
 }
