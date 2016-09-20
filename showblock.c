@@ -16,15 +16,12 @@ INODE *ip;
 DIR   *dp;
 #define BLKSIZE 1024
 char buf[BLKSIZE];
-char *name[50];
 int fd;
-int get_block(int fd, int blk, char buf[ ])
-{
+int get_block(int fd, int blk, char buf[ ]){
   lseek(fd, (long)blk*BLKSIZE, 0);
   read(fd, buf, BLKSIZE);
 }
-printdir(DIR * dp, char *cp)
-{
+printdir(DIR * dp, char *cp){
   int i =0;
   printf("%d ", dp->inode);
   for (i=0; i < dp->name_len;i++){
@@ -32,45 +29,25 @@ printdir(DIR * dp, char *cp)
   }
   putchar('\n');
 }
-dir(){
-  char *cp;
-  int used_dirs = 0, i = 0, j = 0;
-  get_block(fd, 2, buf);
-  gp = (GD *)buf;
-  used_dirs=gp->bg_used_dirs_count;
-  char *dirs[used_dirs];
-  get_block(fd, gp->bg_inode_table, buf);
-  ip = (INODE *)buf+1;//inode 2
-  get_block(fd, ip->i_block[i], buf);
+u32 search(INODE *inodePtr, char *name){
+  int n = 0, i = 0, j = 0;
+  char *str, *cp;
+  get_block(fd, inodePtr->i_block[0], buf);
   dp = (DIR *)buf;
   cp = buf;
-  for(i=0;i<=used_dirs;i++)
-  {
+  printf("searching for %s\n", name);
+  for(i=0;i<6;i++){
     if (i!=2){
-
-      //printdir(dp, cp);
-      dirs[i]=dp->name;
-    }
-    cp += dp->rec_len;
-    dp = (DIR *)cp;
-  }
-  return 0;
-}
-
-u32 search(INODE *inodePtr, char *name)
-{
-  int n = 0, i = 0, t = 0, used_dirs = 0, j = 0;
-  char *str, *token, *cp;
-  get_block(fd, inodePtr->i_block[i], buf);
-  dp = (DIR *)buf;
-  cp = buf;
-
-  for(i=0;i<=used_dirs;i++)
-  {
-    if (i!=2){
-      if(&dp->name[0]==name[i])
-          return 1;
-      // printdir(dp, cp);
+      //printf("%s\n\n", dp->name);
+      for(j=0;j<strlen(name);j++)
+        if(dp->name[j]==name[j]){
+          if(j==strlen(name)-1){
+            printf("found %s\n", name);
+            return dp->inode;
+          }
+        }
+        else
+            break;
       //name[i]=dp->name;
     }
     cp += dp->rec_len;
@@ -80,10 +57,21 @@ u32 search(INODE *inodePtr, char *name)
 }
 char *disk = "mydisk";
 
+
+// Linear_address LA = N*block + house;
+// Block_address BA = (LA / N, LA % N);
+// blk = (ino - 1) / INODES_PER_BLOCK + InodesBeginBlock;
+// offset = (ino - 1) % INODES_PER_BLOCK
+
 main(int argc, char *argv[]){
-  int n = 0, i = 0, t = 0, used_dirs = 0, j = 0;
-  char *str, *token, *cp;
-  char **dirname;
+  u32 ino, blk, offset;
+  int n = 0, i = 0;
+  char *str, *token, *cp, gbuf[BLKSIZE];
+  str = argv[2];
+  for(i=0;i<strlen(str);i++)
+    if(str[i]=='/')
+      n++;
+  char *name[n];
   if (argc > 1)
     disk = argv[1];
   fd = open(disk, O_RDONLY);
@@ -91,20 +79,27 @@ main(int argc, char *argv[]){
     printf("open failed\n");
     exit(1);
   }
-  get_block(fd, 2, buf);
-  gp = (GD *)buf;
-  used_dirs=gp->bg_used_dirs_count;
+  get_block(fd, 2, gbuf);
+  gp = (GD *)gbuf;
   get_block(fd, gp->bg_inode_table, buf);
   ip = (INODE *)buf+1;
-  str = argv[2];
+
   token = strtok(str, "/");
+  i=0;
   while (token != NULL){
-    name[n]=token;
-    n++;
+    name[i]=token;
+    i++;
     token = strtok(NULL, str);
   }
-  for(i=0;i<n;i++)
-    printf("%s\n%d\n", name[i], n);
-  t = dir(name, n);
-  //printf("%s\n", dirname[4]);
+  for(i=0;i<n;i++){
+    //if(name[i]==)
+    ino=search(ip, name[i]);
+    //printf("%s\n%d\n", name[i], ino);
+    if(!ino)
+      break;
+    blk = (ino - 1) / 8 + gp->bg_inode_table;
+    offset = (ino - 1) % 8;
+    get_block(fd, blk, buf);
+    ip=(INODE *)buf+offset+1;
+  }
 }
