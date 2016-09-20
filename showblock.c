@@ -37,8 +37,8 @@ u32 search(INODE *inodePtr, char *name){
   cp = buf;
   printf("searching for %s\n", name);
   for(i=0;i<6;i++){
-    if (i!=2){
-      //printf("%s\n\n", dp->name);
+
+      printf("%4d %4s\n", dp->inode, dp->name);
       for(j=0;j<strlen(name);j++)
         if(dp->name[j]==name[j]){
           if(j==strlen(name)-1){
@@ -49,11 +49,21 @@ u32 search(INODE *inodePtr, char *name){
         else
             break;
       //name[i]=dp->name;
-    }
     cp += dp->rec_len;
     dp = (DIR *)cp;
   }
   return 0;
+}
+print_db(INODE *inodePtr)
+{
+  DIR *d;
+  int i =0;
+  for(i=0;i<12;i++)
+  {
+    get_block(fd, inodePtr->i_block[i], buf);
+    d = (DIR *)buf;
+    printf("diskblock %d:\n%s\n", i, d->name);
+  }
 }
 char *disk = "mydisk";
 
@@ -64,7 +74,7 @@ char *disk = "mydisk";
 // offset = (ino - 1) % INODES_PER_BLOCK
 
 main(int argc, char *argv[]){
-  u32 ino, blk, offset;
+  u32 ino, blk, offset, inostrt;
   int n = 0, i = 0;
   char *str, *token, *cp, gbuf[BLKSIZE];
   str = argv[2];
@@ -81,6 +91,7 @@ main(int argc, char *argv[]){
   }
   get_block(fd, 2, gbuf);
   gp = (GD *)gbuf;
+  inostrt = gp->bg_inode_table;
   get_block(fd, gp->bg_inode_table, buf);
   ip = (INODE *)buf+1;
 
@@ -97,9 +108,13 @@ main(int argc, char *argv[]){
     //printf("%s\n%d\n", name[i], ino);
     if(!ino)
       break;
-    blk = (ino - 1) / 8 + gp->bg_inode_table;
+    printf("%d\n", ino);
+    blk = (ino - 1) / 8 + inostrt;
     offset = (ino - 1) % 8;
     get_block(fd, blk, buf);
-    ip=(INODE *)buf+offset+1;
+    ip=(INODE *)buf+offset;
   }
+  if(ino)
+    print_db(ip);
+  return 0;
 }
