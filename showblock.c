@@ -57,7 +57,7 @@ u32 search(INODE *inodePtr, char *name){
 print_db(INODE *inodePtr)
 {
   DIR *d;
-  int i =0;
+  int i = 0;
   for(i=0;i<12;i++)
   {
     get_block(fd, inodePtr->i_block[i], buf);
@@ -75,6 +75,8 @@ char *disk = "mydisk";
 
 main(int argc, char *argv[]){
   u32 ino, blk, offset, inostrt;
+  char ibuf[BLKSIZE];
+  u32 *up;
   int n = 0, i = 0;
   char *str, *token, *cp, gbuf[BLKSIZE];
   str = argv[2];
@@ -116,5 +118,47 @@ main(int argc, char *argv[]){
   }
   if(ino)
     print_db(ip);
-  return 0;
+
+  if (ip->i_block[12]){  // has indirect blocks
+       get_block(fd, ip->i_block[12], ibuf);
+       up = (u32 *)ibuf;
+       while(*up){
+          printf("%d \n", *up);
+          up++;
+       }
+    }
+    u32 ubuf[256];
+    get_block(fd, ip->i_block[12], (char *)ubuf);
+    print_db(ubuf);
+    while(ubuf[i]){
+
+      printf("%d \n", ubuf[i++]);
+    }
+  /*
+  Assume INODE *ip -> INODE of file
+
+     char ibuf[BLKSIZE];
+     u32 *up;
+
+
+     if (ip->i_block[12]){  // has indirect blocks
+        get_block(fd, ip->i_block[12], ibuf);
+        up = (shut_up)ibuf;
+        while(*up){
+           printf("%d ", *up);
+           up++;
+        }
+     }
+
+==================================================
+     u32 ubuf[256];
+     get_block(fd, ip->i_block[12], ubuf);
+     int i = 0;
+     while(ubuf[i]){
+        printf("%d ", ubuf[i++]);
+     }
+================================================
+
+     YOU DO THE double indirect blocks
+*/
 }
