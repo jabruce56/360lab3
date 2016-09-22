@@ -6,7 +6,7 @@
 
 typedef unsigned int   u32;
 
-// define shorter TYPES, save typing efforts
+//define shorter TYPES, save typing efforts
 typedef struct ext2_group_desc  GD;
 typedef struct ext2_super_block SUPER;
 typedef struct ext2_inode       INODE;
@@ -43,11 +43,11 @@ struct ext2_super_block {
 char buf[BLKSIZE];
 int fd;
 
-int get_block(int fd, int blk, char buf[ ])
-{
-  lseek(fd, (long)blk*BLKSIZE, 0);
-  read(fd, buf, BLKSIZE);
-}
+// int get_block(int fd, int blk, char buf[ ])
+// {
+//   lseek(fd, (long)blk*BLKSIZE, 0);
+//   read(fd, buf, BLKSIZE);
+// }
 
 super()
 {
@@ -57,48 +57,48 @@ super()
 
   // check for EXT2 magic number:
 
-  printf("s_magic = %x\n", sp->s_magic);
+  //printf("s_magic = %x\n", sp->s_magic);
   if (sp->s_magic != 0xEF53){
     printf("NOT an EXT2 FS\n");
     exit(1);
   }
 
-  printf("EXT2 FS OK\n");
+  //printf("EXT2 FS OK\n");
+  printf("\n      -super block-\n");
+  printf("inodes count      = %6d\n", sp->s_inodes_count);
+  printf("blocks count      = %6d\n", sp->s_blocks_count);
+  printf("free inodes count = %6d\n", sp->s_free_inodes_count);
+  printf("free blocks count = %6d\n", sp->s_free_blocks_count);
 
-  printf("s_inodes_count = %d\n", sp->s_inodes_count);
-  printf("s_blocks_count = %d\n", sp->s_blocks_count);
-  printf("s_free_inodes_count = %d\n", sp->s_free_inodes_count);
-  printf("s_free_blocks_count = %d\n", sp->s_free_blocks_count);
+  printf("first data block  = %6d\n", sp->s_first_data_block);
 
-  printf("s_first_data_block = %d\n", sp->s_first_data_block);
+  printf("log block size    = %6d\n", sp->s_log_block_size);
 
-  printf("s_log_block_size = %d\n", sp->s_log_block_size);
-
-  printf("s_blocks_per_group = %d\n", sp->s_blocks_per_group);
-  printf("s_inodes_per_group = %d\n", sp->s_inodes_per_group);
+  printf("blocks per group  = %6d\n", sp->s_blocks_per_group);
+  printf("inodes per group  = %6d\n", sp->s_inodes_per_group);
 
 
-  printf("s_mnt_count = %d\n", sp->s_mnt_count);
-  printf("s_max_mnt_count = %d\n", sp->s_max_mnt_count);
+  printf("mnt count         = %6d\n", sp->s_mnt_count);
+  printf("max mnt count     = %6d\n", sp->s_max_mnt_count);
 
-  printf("s_magic = %x\n", sp->s_magic);
+  printf("magic             = %6x\n", sp->s_magic);
 
-  printf("s_mtime = %s", ctime(&sp->s_mtime));
-  printf("s_wtime = %s", ctime(&sp->s_wtime));
+  //printf("s_mtime = %s", ctime(&sp->s_mtime));
+  //printf("s_wtime = %s", ctime(&sp->s_wtime));
 }
 
-char *disk = "mydisk";
+//char *disk = "mydisk";
 
-main(int argc, char *argv[ ]){
-  if (argc > 1)
-    disk = argv[1];
-  fd = open(disk, O_RDONLY);
-  if (fd < 0){
-    printf("open failed\n");
-    exit(1);
-  }
-  super();
-}
+// main(int argc, char *argv[ ]){
+//   if (argc > 1)
+//     disk = argv[1];
+//   fd = open(disk, O_RDONLY);
+//   if (fd < 0){
+//     printf("open failed\n");
+//     exit(1);
+//   }
+//   super();
+// }
 /*
 ***** SAMPLE OUTPUTs of super.c ****************
 s_inodes_count                 =      184

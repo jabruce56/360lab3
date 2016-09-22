@@ -21,11 +21,11 @@ DIR   *dp;
 int fd;
 int iblock;
 
-int get_block(int fd, int blk, char buf[ ])
-{
-   lseek(fd,(long)blk*BLKSIZE, 0);
-   read(fd, buf, BLKSIZE);
-}
+// int get_block(int fd, int blk, char buf[ ])
+// {
+//    lseek(fd,(long)blk*BLKSIZE, 0);
+//    read(fd, buf, BLKSIZE);
+// }
 
 inode()
 {
@@ -34,7 +34,7 @@ inode()
   // read GD
   get_block(fd, 2, buf);
   gp = (GD *)buf;
-  /************ print these to see what they are  ****/
+  /************ print these to see what they are  ****
   printf("%8d %8d %8d %8d %8d %8d\n",
 	 gp->bg_block_bitmap,
 	 gp->bg_inode_bitmap,
@@ -44,19 +44,23 @@ inode()
 	 gp->bg_used_dirs_count);
   /***************************************************/
   iblock = gp->bg_inode_table;   // get inode start block#
-  printf("inode_block=%d\n", iblock);
+  printf("\n      -root inode-\n");
+  printf("inode block = %6d", iblock);
 
   // get inode start block
   get_block(fd, iblock, buf);
 
   ip = (INODE *)buf + 1;         // ip points at 2nd INODE
 
-  printf("mode=%4x ", ip->i_mode);
-  printf("uid=%d  gid=%d\n", ip->i_uid, ip->i_gid);
-  printf("size=%d\n", ip->i_size);
-  printf("time=%s",   ctime(&ip->i_ctime));
-  printf("link=%d\n", ip->i_links_count);
-  printf("i_block[0]=%d\n", ip->i_block[0]);
+
+  printf("  uid  = %4d\n", ip->i_uid);
+  printf("mode        = %6x ", ip->i_mode);
+  printf(" gid  = %4d\n", ip->i_gid);
+  printf("size        = %6d\n", ip->i_size);
+  printf("created     = %6s",   ctime(&ip->i_ctime));
+  printf("link count  = %6d\n", ip->i_links_count);
+  printf("block count = %6d\n", ip->i_blocks);
+  printf("i_block[0]  = %6d\n", ip->i_block[0]);
 
  /*****************************
   u16  i_mode;                      // fiel type|permission bits
@@ -75,20 +79,20 @@ inode()
  ***************************/
 }
 
-char *disk = "mydisk";
-main(int argc, char *argv[])
-{
-  if (argc > 1)
-    disk = argv[1];
-
-  fd = open(disk, O_RDONLY);
-  if (fd < 0){
-    printf("open %s failed\n", disk);
-    exit(1);
-  }
-
-  inode();
-}
+// char *disk = "mydisk";
+// main(int argc, char *argv[])
+// {
+//   if (argc > 1)
+//     disk = argv[1];
+//
+//   fd = open(disk, O_RDONLY);
+//   if (fd < 0){
+//     printf("open %s failed\n", disk);
+//     exit(1);
+//   }
+//
+//   inode();
+// }
 /******************************
 inode_block = 10
 mode=    41ed

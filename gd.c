@@ -31,36 +31,36 @@ DIR   *dp;
 char buf[BLKSIZE];
 int fd;
 
-int get_block(int fd, int blk, char buf[ ])
-{
-  lseek(fd, (long)blk*BLKSIZE, 0);
-  read(fd, buf, BLKSIZE);
-}
+// int get_block(int fd, int blk, char buf[ ])
+// {
+//   lseek(fd, (long)blk*BLKSIZE, 0);
+//   read(fd, buf, BLKSIZE);
+// }
 
 gd()
 {
   get_block(fd, 2, buf);//go to block 2, group descriptor block
   gp=(GD *)buf;
-
-  printf("bg_block_bitmap = %d\n", gp->bg_block_bitmap);
-  printf("bg_inode_bitmap = %d\n", gp->bg_inode_bitmap);
-  printf("bg_inode_table = %d\n", gp->bg_inode_table);
-  printf("bg_free_blocks_count = %d\n", gp->bg_free_blocks_count);
-  printf("bg_free_inodes_count = %d\n", gp->bg_free_inodes_count);
-  printf("bg_used_dirs_count = %d\n", gp->bg_used_dirs_count);
+  printf("\n   -group descriptor-\n");
+  printf("block bitmap      = %6d\n", gp->bg_block_bitmap);
+  printf("inode bitmap      = %6d\n", gp->bg_inode_bitmap);
+  printf("inode table       = %6d\n", gp->bg_inode_table);
+  printf("free blocks count = %6d\n", gp->bg_free_blocks_count);
+  printf("free inodes count = %6d\n", gp->bg_free_inodes_count);
+  printf("used dirs count   = %6d\n", gp->bg_used_dirs_count);
 }
-char *disk = "mydisk";
-
-main(int argc, char *argv[ ])
-
-{
-  if (argc > 1)
-    disk = argv[1];
-  fd = open(disk, O_RDONLY);
-  if (fd < 0){
-    printf("open failed\n");
-    exit(1);
-  }
-
-  gd();
-}
+// char *disk = "mydisk";
+//
+// main(int argc, char *argv[ ])
+//
+// {
+//   if (argc > 1)
+//     disk = argv[1];
+//   fd = open(disk, O_RDONLY);
+//   if (fd < 0){
+//     printf("open failed\n");
+//     exit(1);
+//   }
+//
+//   gd();
+// }
