@@ -1,3 +1,12 @@
+/***********************************
+Jesse Bruce
+cpts 360
+lab3 showblock
+
+showblock DISK PATHNAME
+
+prints superblock group descriptor inode and dir of given disk and will search for a given file to print block information
+***********************************/
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,71 +39,69 @@ int get_block(int fd, int blk, char buf[ ]){
   read(fd, buf, BLKSIZE);
 }
 
-u32 search(INODE *inodePtr, char *name){
+u32 search(INODE *inodePtr, char *name){//searches for name in each dir entry
   int n = 0, i = 0, j = 0;
   char *str, *cp;
   get_block(fd, inodePtr->i_block[0], buf);
   dp = (DIR *)buf;
   cp = buf;
   printf("\nsearching for %s...\n", name);
-  for(i=0;i<6;i++){
+  for(i=0;i<12;i++){
       printf("%4d %4s\n", dp->inode, dp->name);
-      for(j=0;j<strlen(name);j++)
-        if(dp->name[j]==name[j]){
-          if(j==strlen(name)-1){
+      for(j=0;j<strlen(name);j++)//over length of name
+        if(dp->name[j]==name[j]){//compare each char
+          if(j==strlen(name)-1){//if at end of name
             printf("found %s at inumber %u\n", name, (u32)dp->inode);
-            return dp->inode;
+            return dp->inode;//return the inode number
           }
         }
-        else
+        else//if any char does not match, break
             break;
-    cp += dp->rec_len;
+    cp += dp->rec_len;//advance
     dp = (DIR *)cp;
   }
   printf("search found nothing with the name %s\n", name);
   return 0;
 }
 
-print_diskb()
-{
+print_diskb(){//prints i blocks 0-15 if available
   int i = 0;
   printf("\n -disk blocks-\n");
   for(i=0;(i<=15)&&(ip->i_block[i]);i++)
     printf("block[%2d] = %u\n", i, ip->i_block[i]);
 }
 
-print_db()
-{
+print_db(){//prints all direct blocks
   int i = 0;
   printf("\n            -direct blocks-\n");
-  for(i=0;(i<12)&&(ip->i_block[i]);i++){
+  for(i=0;(i<12)&&(ip->i_block[i]);i++){//for blocks 0-11(direct blocks)
     printf("%3u ", ip->i_block[i]);
-    if(((i+1)%10==0)){
+    if(((i+1)%10==0)){//every tenth put newline
       putchar('\n');
     }
   }
   putchar('\n');
 }
 
-print_idb(){
+print_idb(){//prints al 256 indirect blocks
   u32 ubuf[256];
   int i = 0;
   printf("\n           -indirect blocks-\n");
-  get_block(fd, ip->i_block[12], ubuf);
-  for(i=0;i<256&&(ubuf[i]);i++){
+  get_block(fd, ip->i_block[12], ubuf);//seek to indirect block containing 256 block numbers that each point to a block
+  for(i=0;i<256&&(ubuf[i]);i++){//go through block numbers
     printf("%3u ", ubuf[i]);
-    if(((i+1)%10==0)){
+    if(((i+1)%10==0)){//newline every 10
       putchar('\n');
     }
   }
   putchar('\n');
 }
 
-print_didb(){
+print_didb(){//prints double indirect blocks
   u32 dbuf[256], ubuf[256];
   int i = 0, j = 0;
   printf("\n      -double indirect pointers-\n");
-  get_block(fd, ip->i_block[13], dbuf);
+  get_block(fd, ip->i_block[13], dbuf);//seek to double indirect block containing 256 pointers that each point to 256 block numbers that each point to a block
   for(i=0;i<256&&(dbuf[i]);i++){
     printf("%3u ", dbuf[i]);
     if(((i+1)%10==0)){
@@ -103,9 +110,9 @@ print_didb(){
   }
   putchar('\n');
   printf("\n       -double indirect blocks-\n");
-  for(i=0;i<256&&(dbuf[i]);i++){
-    get_block(fd, dbuf[i], ubuf);
-    for(j=0;j<256&&(ubuf[j]);j++){
+  for(i=0;i<256&&(dbuf[i]);i++){//go through the double indirect block of 256 pointers to 256 pointers
+    get_block(fd, dbuf[i], ubuf);//move to each block of indirect pointers
+    for(j=0;j<256&&(ubuf[j]);j++){//go through each of the 256 block numbers and print blocks
       printf("%3u ", ubuf[j]);
       if(((j+1)%10==0)){
         putchar('\n');
@@ -113,18 +120,18 @@ print_didb(){
     }
   }
 }
-
 char *disk;
-
 main(int argc, char *argv[]){
   u32 ino, blk, offset, inostrt;
   int n = 0, i = 0;
   char *str, *token, *cp, ubuf[256];
   str = argv[2];
-  for(i=0;i<strlen(str);i++)
+  for(i=0;i<strlen(str);i++)//find n
     if(str[i]=='/')
       n++;
   char *name[n];
+
+  //check disk input
   if (argc > 1)
     disk = argv[1];
   fd = open(disk, O_RDONLY);
@@ -133,9 +140,12 @@ main(int argc, char *argv[]){
     exit(1);
   }
 
+  //printf information
   super();
   gd();
   inode();
+  printf("    -ready to search-\npress any key to continue...");
+  getchar();
   printf("\n============================================\n");
   dir();
 
@@ -145,6 +155,7 @@ main(int argc, char *argv[]){
   get_block(fd, gp->bg_inode_table, buf);
   ip = (INODE *)buf+1;
 
+  //parse str using strtok and place into name[n]
   token = strtok(str, "/");
   i=0;
   while (token != NULL){
@@ -157,18 +168,22 @@ main(int argc, char *argv[]){
   printf("n    = %d\nname = ", n);
   for(i=0;i<n;i++){printf("/%s", name[i]);}
   putchar('\n');
-  for(i=0;i<n;i++){
+  for(i=0;i<n;i++){//search for input pathname
     ino=search(ip, name[i]);
     if(!ino)
       break;
+
+    //mailmans algo to convert inode number to disk position
     blk = (ino - 1) / 8 + inostrt;
     offset = (ino - 1) % 8;
-    get_block(fd, blk, buf);
-    ip=(INODE *)buf+offset;
+    get_block(fd, blk, buf);//seek
+    ip=(INODE *)buf+offset;//add offset
   }
+  printf("  -ready to print blocks-\npress any key to continue...");
+  getchar();
   printf("\n============================================\n");
 
-  if(ino){
+  if(ino){//print blocks
     print_diskb();
     print_db();
     if(ip->i_block[12])
